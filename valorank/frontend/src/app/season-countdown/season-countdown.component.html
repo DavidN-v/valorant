@@ -1,0 +1,65 @@
+<div class="season-hud-banner" *ngIf="countdown as c" [class.urgent]="c.isUrgent" [class.final-day]="c.isFinalDay">
+  <!-- Borde decorativo láser y esquinas tácticas -->
+  <div class="hud-corner top-left"></div>
+  <div class="hud-corner top-right"></div>
+  <div class="hud-corner bottom-left"></div>
+  <div class="hud-corner bottom-right"></div>
+
+  <div class="banner-inner">
+    <!-- COLUMNA IZQUIERDA: Acto & Temporada -->
+    <div class="season-info-col">
+      <div class="season-badge">
+        <span class="live-indicator"></span>
+        <span class="season-tag">VALORANT // TEMPORADA ACTIVA</span>
+      </div>
+      <h4 class="act-name">
+        {{ c.actTitle }}
+      </h4>
+      <span class="season-sub">Cierre de Competitivo & Premier</span>
+    </div>
+
+    <!-- COLUMNA CENTRAL: Reloj Digital Segmentado -->
+    <div class="clock-display-col">
+      <div class="clock-header">
+        <span class="clock-label">⏱️ TIEMPO RESTANTE PARA FIN DE ACTO</span>
+        <span class="urgency-pill" *ngIf="c.isUrgent">⚠️ ¡ÚLTIMA SEMANA!</span>
+      </div>
+
+      <div class="timer-digits-wrapper">
+        <div class="time-block">
+          <span class="digit">{{ c.days }}</span>
+          <span class="unit">DÍAS</span>
+        </div>
+        <span class="time-separator">:</span>
+        <div class="time-block">
+          <span class="digit">{{ pad(c.hours) }}</span>
+          <span class="unit">HORAS</span>
+        </div>
+        <span class="time-separator">:</span>
+        <div class="time-block">
+          <span class="digit">{{ pad(c.minutes) }}</span>
+          <span class="unit">MIN</span>
+        </div>
+        <span class="time-separator">:</span>
+        <div class="time-block seconds-block">
+          <span class="digit">{{ pad(c.seconds) }}</span>
+          <span class="unit">SEG</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: Barra de Progreso Temporal del Acto -->
+    <div class="progress-col">
+      <div class="progress-meta">
+        <span class="progress-label">Progreso del Acto</span>
+        <span class="progress-val">{{ c.progressPct }}%</span>
+      </div>
+      <div class="act-progress-track">
+        <div class="act-progress-bar" [style.width.%]="c.progressPct">
+          <div class="laser-glow-tip"></div>
+        </div>
+      </div>
+      <span class="progress-tip">Asegura tu rango antes del reinicio de RR</span>
+    </div>
+  </div>
+</div>

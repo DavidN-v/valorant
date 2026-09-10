@@ -1,0 +1,228 @@
+<div class="auth-page-wrapper">
+  <!-- Fondo táctico animado con anillos y radar -->
+  <div class="tactical-bg">
+    <div class="grid-overlay"></div>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="tactical-ring ring-large"></div>
+    <div class="tactical-ring ring-medium"></div>
+    <div class="tactical-crosshair"></div>
+  </div>
+
+  <!-- Contenedor Principal Split / Showcase -->
+  <div class="auth-layout">
+    
+    <!-- LADO IZQUIERDO: Agente Flotante 1 -->
+    <div class="side-showcase side-left">
+      <div class="agent-display-wrap float-anim-1">
+        <div class="agent-back-halo" [style.background]="'radial-gradient(circle, ' + agents[currentLeftAgent].accentColor + '33 0%, transparent 70%)'"></div>
+        <img
+          [src]="'https://media.valorant-api.com/agents/' + agents[currentLeftAgent].uuid + '/fullportrait.png'"
+          [alt]="agents[currentLeftAgent].name"
+          class="agent-full-art"
+          decoding="async"
+          loading="eager"
+        />
+        <div class="agent-hud-card">
+          <div class="hud-top">
+            <span class="hud-role" [style.color]="agents[currentLeftAgent].accentColor">
+              // {{ agents[currentLeftAgent].role }}
+            </span>
+            <span class="hud-status">ACTIVO</span>
+          </div>
+          <h3 class="hud-name">{{ agents[currentLeftAgent].name }}</h3>
+          <p class="hud-desc">{{ agents[currentLeftAgent].tagline }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTRO: Formulario de Login / Registro -->
+    <div class="center-content">
+      <!-- Branding y Logo -->
+      <div class="brand-header">
+        <div class="brand-badge">
+          <span class="badge-dot"></span> SISTEMA DE RANKINGS VALORANT
+        </div>
+        <h1 class="brand-title">
+          VALO<span class="title-highlight">RANT</span>
+        </h1>
+        <p class="brand-subtitle">
+          Sincroniza tus estadísticas oficiales, analiza tu K/D, Winrate y compite en el Leaderboard de tu equipo.
+        </p>
+      </div>
+
+      <!-- Tarjeta Glassmorphic Auth -->
+      <div class="auth-card">
+        <div class="card-accent-bar"></div>
+        
+        <!-- Selector de Pestañas -->
+        <div class="tabs">
+          <button 
+            type="button"
+            [class.active]="mode==='login'" 
+            (click)="mode='login'">
+            <span class="tab-icon">⚡</span> ENTRAR
+          </button>
+          <button 
+            type="button"
+            [class.active]="mode==='register'" 
+            (click)="mode='register'">
+            <span class="tab-icon">🛡️</span> REGISTRARME
+          </button>
+        </div>
+
+        <!-- Formulario de Login -->
+        <form *ngIf="mode==='login'" (ngSubmit)="doLogin()" class="auth-form">
+          <div class="input-group">
+            <label>Correo Electrónico</label>
+            <input 
+              [(ngModel)]="email" 
+              name="email" 
+              placeholder="tu_correo@ejemplo.com" 
+              type="email" 
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="input-group">
+            <label>Contraseña</label>
+            <input 
+              [(ngModel)]="password" 
+              name="password" 
+              placeholder="••••••••••••" 
+              type="password" 
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <span>INICIAR SESIÓN</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form *ngIf="mode==='register'" (ngSubmit)="doRegister()" class="auth-form">
+          <div class="input-group">
+            <label>Nombre de Usuario</label>
+            <input 
+              [(ngModel)]="displayName" 
+              name="displayName" 
+              placeholder="Ej. Harold" 
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <label>Correo Electrónico</label>
+            <input 
+              [(ngModel)]="email" 
+              name="email" 
+              placeholder="tu_correo@ejemplo.com" 
+              type="email" 
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="input-group">
+            <label>Contraseña</label>
+            <input 
+              [(ngModel)]="password" 
+              name="password" 
+              placeholder="Crea una contraseña segura" 
+              type="password" 
+              required
+              autocomplete="new-password"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="input-group flex-2">
+              <label>Riot ID (nombre#tag)</label>
+              <input 
+                [(ngModel)]="riotId" 
+                name="riotId" 
+                placeholder="Ej: TenZ#NA1" 
+                required
+              />
+            </div>
+
+            <div class="input-group flex-1">
+              <label>Región</label>
+              <select [(ngModel)]="region" name="region">
+                <option value="latam">LATAM</option>
+                <option value="na">NA</option>
+                <option value="eu">EU</option>
+                <option value="br">BR</option>
+                <option value="ap">AP</option>
+                <option value="kr">KR</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <span>CREAR CUENTA</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+
+        <!-- Mensajes de Notificación -->
+        <div class="error-box" *ngIf="error">
+          <span class="alert-icon">⚠️</span> {{ error }}
+        </div>
+        <div class="toast-success" *ngIf="successMessage">
+          <span class="alert-icon">✅</span> {{ successMessage }}
+        </div>
+
+        <div class="card-footer">
+          <span class="footer-tag">// CONEXIÓN SEGURA RIOT API</span>
+          <span class="footer-tag">MODOS: COMPETITIVO & PREMIER</span>
+        </div>
+      </div>
+
+      <!-- Barra de características abajo -->
+      <div class="features-row">
+        <div class="feature-item">
+          <span class="f-icon">📊</span>
+          <span class="f-text">Leaderboard en Vivo</span>
+        </div>
+        <div class="feature-item">
+          <span class="f-icon">🏆</span>
+          <span class="f-text">Modo Premier 2026</span>
+        </div>
+        <div class="feature-item">
+          <span class="f-icon">🎯</span>
+          <span class="f-text">Estadísticas por Agente</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LADO DERECHO: Agente Flotante 2 -->
+    <div class="side-showcase side-right">
+      <div class="agent-display-wrap float-anim-2">
+        <div class="agent-back-halo" [style.background]="'radial-gradient(circle, ' + agents[currentRightAgent].accentColor + '33 0%, transparent 70%)'"></div>
+        <img
+          [src]="'https://media.valorant-api.com/agents/' + agents[currentRightAgent].uuid + '/fullportrait.png'"
+          [alt]="agents[currentRightAgent].name"
+          class="agent-full-art"
+          decoding="async"
+          loading="eager"
+        />
+        <div class="agent-hud-card">
+          <div class="hud-top">
+            <span class="hud-role" [style.color]="agents[currentRightAgent].accentColor">
+              // {{ agents[currentRightAgent].role }}
+            </span>
+            <span class="hud-status">ACTIVO</span>
+          </div>
+          <h3 class="hud-name">{{ agents[currentRightAgent].name }}</h3>
+          <p class="hud-desc">{{ agents[currentRightAgent].tagline }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

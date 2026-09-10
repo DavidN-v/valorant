@@ -1,0 +1,117 @@
+<div class="leaderboard">
+  <div class="nav-bar">
+    <a routerLink="/dashboard" class="back-link">← Volver a mi Dashboard</a>
+    <div class="mode-tabs">
+      <a routerLink="/leaderboard" class="tab active">⚔️ Competitivo</a>
+      <a routerLink="/premier" class="tab">🏆 Premier</a>
+      <a routerLink="/maps" class="tab">🗺️ Mapas</a>
+    </div>
+  </div>
+
+  <app-season-countdown></app-season-countdown>
+
+  <div class="leaderboard-header">
+    <div class="header-left">
+      <h2>🏆 Leaderboard Competitivo</h2>
+      <span class="header-subtitle">Clasificación en vivo del escuadrón</span>
+    </div>
+    <div class="header-controls">
+      <label class="sort-label">Ordenar por:</label>
+      <select [(ngModel)]="sortBy" (ngModelChange)="load()">
+        <option value="rr">Rango (RR)</option>
+        <option value="winrate">Winrate</option>
+        <option value="kd">K/D Ratio</option>
+        <option value="headshot">Headshot %</option>
+        <option value="matches">Partidas jugadas</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th class="th-rank">#</th>
+          <th class="th-player">Jugador</th>
+          <th class="th-tier">Rango</th>
+          <th class="th-metric">Winrate</th>
+          <th class="th-metric">K/D</th>
+          <th class="th-metric">HS %</th>
+          <th class="th-metric">Partidas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filteredPlayers; let i = index" [class.leader]="i === 0" [class.top-three]="i < 3">
+          <td class="td-rank">
+            <span class="rank-pos-badge" [class.pos-1]="i === 0" [class.pos-2]="i === 1" [class.pos-3]="i === 2">
+              {{ i + 1 }}
+            </span>
+          </td>
+          <td class="td-player">
+            <div class="player-cell">
+              <div class="player-avatar" [class.avatar-leader]="i === 0">
+                {{ p.display_name.charAt(0).toUpperCase() }}
+              </div>
+              <div class="player-names">
+                <span class="player-display">{{ p.display_name }}</span>
+                <span class="player-riotid" *ngIf="p.riot_id">{{ p.riot_id }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="td-tier">
+            <div class="rank-cell-content">
+              <div class="rank-icon-wrapper">
+                <img [src]="getRankIcon(p.current_tier)" [alt]="p.current_tier" class="rank-badge-img" loading="lazy" decoding="async" />
+              </div>
+              <div class="rank-cell-text">
+                <span class="rank-cell-name">{{ p.current_tier }}</span>
+                <span class="rank-cell-rr">{{ p.ranking_in_tier }} RR</span>
+              </div>
+            </div>
+          </td>
+          <td class="td-metric">
+            <div class="metric-block">
+              <strong class="metric-val" [class.stat-positive]="p.winrate_pct >= 50" [class.stat-negative]="p.winrate_pct < 50">
+                {{ p.winrate_pct | number:'1.1-1' }}%
+              </strong>
+              <small class="metric-sub">{{ p.wins }}V - {{ p.losses }}D</small>
+            </div>
+          </td>
+          <td class="td-metric">
+            <strong class="metric-val" [class.stat-positive]="p.kd_ratio >= 1" [class.stat-negative]="p.kd_ratio < 1">
+              {{ p.kd_ratio | number:'1.2-2' }}
+            </strong>
+          </td>
+          <td class="td-metric">
+            <strong class="metric-val" [class.stat-positive]="p.headshot_pct >= 25">
+              {{ p.headshot_pct | number:'1.1-1' }}%
+            </strong>
+          </td>
+          <td class="td-metric">
+            <span class="matches-badge">{{ p.matches_played }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <button (click)="refreshAll()" [disabled]="refreshing">
+      {{ refreshing ? '⏳ Actualizando...' : '🔄 Actualizar todos' }}
+    </button>
+    <span *ngIf="refreshMsg && !refreshing" class="msg">{{ refreshMsg }}</span>
+  </div>
+
+  <div class="progress-container" *ngIf="refreshing">
+    <div class="progress-header">
+      <span class="progress-title">Actualizando jugadores en background...</span>
+      <span class="progress-count">{{ refreshCurrent }} / {{ refreshTotal }} ({{ progressPct | number:'1.0-0' }}%)</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" [style.width.%]="progressPct"></div>
+    </div>
+    <div class="progress-eta" *ngIf="refreshTotal > 0 && refreshCurrent < refreshTotal">
+      Tiempo estimado restante: ~{{ ((refreshTotal - refreshCurrent) * 1.5) | number:'1.0-0' }} segundos
+    </div>
+  </div>
+</div>

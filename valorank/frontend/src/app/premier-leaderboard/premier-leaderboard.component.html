@@ -1,0 +1,183 @@
+<div class="leaderboard premier-theme">
+  <div class="nav-bar">
+    <a routerLink="/dashboard" class="back-link">← Volver a mi Dashboard</a>
+    <div class="mode-tabs">
+      <a routerLink="/leaderboard" class="tab">⚔️ Competitivo</a>
+      <a routerLink="/premier" class="tab active">🏆 Premier</a>
+      <a routerLink="/maps" class="tab">🗺️ Mapas</a>
+    </div>
+  </div>
+
+  <app-season-countdown></app-season-countdown>
+
+  <div class="header-section">
+    <div>
+      <div class="badge-premier">MODO PREMIER</div>
+      <h2>🏆 Leaderboard Premier</h2>
+      <p class="subtitle">Rendimiento individual y agentes jugados por el equipo</p>
+    </div>
+
+    <div class="header-controls">
+      <select [(ngModel)]="sortBy" (ngModelChange)="load()">
+        <option value="winrate">Ordenar por Winrate</option>
+        <option value="kd">Ordenar por K/D</option>
+        <option value="headshot">Ordenar por Headshot %</option>
+        <option value="matches">Ordenar por Partidas jugadas</option>
+      </select>
+    </div>
+  </div>
+
+  <table *ngIf="players && players.length > 0">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Jugador</th>
+        <th>Agentes en Premier</th>
+        <th>Partidas</th>
+        <th>W / L</th>
+        <th>Winrate</th>
+        <th>K/D</th>
+        <th>HS%</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let p of filteredPlayers; let i = index">
+        <tr [class.leader]="i === 0" [class.row-expanded]="expandedPlayerId === p.user_id" (click)="toggleExpand(p.user_id)" class="player-main-row">
+          <td>{{ i + 1 }}</td>
+          <td>
+            <div class="player-cell">
+              <span class="player-name">{{ p.display_name }}</span>
+              <span class="player-riotid">{{ p.riot_id }}</span>
+            </div>
+          </td>
+          <td>
+            <!-- Agentes jugados en Premier con iconos y rol -->
+            <div class="agents-inline-list" *ngIf="p.top_agents && p.top_agents.length > 0">
+              <div 
+                class="agent-inline-chip" 
+                *ngFor="let agent of p.top_agents.slice(0, 4)"
+                [title]="agent.name + ' (' + getAgentRole(agent.name) + ') - ' + agent.matches + ' partidas | WR: ' + (agent.winrate | number:'1.0-0') + '%'">
+                <div class="agent-chip-avatar">
+                  <img
+                    [src]="'https://media.valorant-api.com/agents/' + getAgentUuid(agent.name) + '/displayicon.png'"
+                    [alt]="agent.name"
+                    class="agent-chip-icon"
+                    loading="lazy"
+                    decoding="async"
+                    (error)="onImgError($event, agent.name)"
+                  />
+                  <span class="agent-chip-matches">{{ agent.matches }}</span>
+                </div>
+                <div class="agent-chip-meta">
+                  <span class="agent-chip-name">{{ getAgentDisplayName(agent.name) }}</span>
+                  <span class="agent-chip-role" [ngClass]="getRoleClass(agent.name)">{{ getAgentRole(agent.name) }}</span>
+                </div>
+              </div>
+              <span class="more-agents-badge" *ngIf="p.top_agents.length > 4">
+                +{{ p.top_agents.length - 4 }}
+              </span>
+            </div>
+            <div *ngIf="!p.top_agents || p.top_agents.length === 0" class="text-muted-sm">
+              Sin agentes
+            </div>
+          </td>
+          <td><strong>{{ p.matches_played }}</strong></td>
+          <td>
+            <span class="wins-text">{{ p.wins }}W</span> - <span class="losses-text">{{ p.losses }}L</span>
+          </td>
+          <td>
+            <span class="highlight-stat">{{ p.winrate_pct | number:'1.1-1' }}%</span>
+          </td>
+          <td>
+            <span [class.positive-kd]="p.kd_ratio >= 1.0" [class.negative-kd]="p.kd_ratio < 1.0">
+              {{ p.kd_ratio | number:'1.2-2' }}
+            </span>
+          </td>
+          <td>{{ p.headshot_pct | number:'1.1-1' }}%</td>
+          <td class="toggle-col">
+            <span class="chevron-btn" [class.rotate]="expandedPlayerId === p.user_id">▼</span>
+          </td>
+        </tr>
+
+        <!-- Fila expandible con las tarjetas completas de agentes del jugador -->
+        <tr *ngIf="expandedPlayerId === p.user_id" class="agent-expanded-row">
+          <td colspan="9">
+            <div class="expanded-details-container">
+              <div class="expanded-header">
+                <h4>🎯 Agentes de Premier de {{ p.display_name }} ({{ p.riot_id }})</h4>
+                <span class="expanded-sub">Detalle de rendimiento por cada personaje jugado</span>
+              </div>
+              
+              <div class="expanded-agents-grid">
+                <div class="expanded-agent-card" *ngFor="let agent of p.top_agents; let aIdx = index" [class.agent-first]="aIdx === 0">
+                  <div class="agent-card-portrait">
+                    <img
+                      [src]="'https://media.valorant-api.com/agents/' + getAgentUuid(agent.name) + '/displayicon.png'"
+                      [alt]="agent.name"
+                      class="expanded-agent-img"
+                      width="56"
+                      height="56"
+                      loading="lazy"
+                      decoding="async"
+                      (error)="onImgError($event, agent.name)"
+                    />
+                    <span class="card-role-badge" [ngClass]="getRoleClass(agent.name)">
+                      {{ getAgentRole(agent.name) }}
+                    </span>
+                  </div>
+                  <div class="agent-card-info">
+                    <div class="agent-card-title">{{ getAgentDisplayName(agent.name) }}</div>
+                    <div class="agent-card-stats">
+                      <div class="c-stat">
+                        <span class="c-stat-label">PARTIDAS</span>
+                        <span class="c-stat-val">{{ agent.matches }}</span>
+                      </div>
+                      <div class="c-stat">
+                        <span class="c-stat-label">WINRATE</span>
+                        <span class="c-stat-val" [class.wins-text]="agent.winrate >= 50" [class.losses-text]="agent.winrate < 50">
+                          {{ agent.winrate | number:'1.1-1' }}%
+                        </span>
+                      </div>
+                      <div class="c-stat">
+                        <span class="c-stat-label">K/D</span>
+                        <span class="c-stat-val" [class.positive-kd]="agent.kd >= 1.0" [class.negative-kd]="agent.kd < 1.0">
+                          {{ agent.kd | number:'1.2-2' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+
+  <div *ngIf="players.length === 0 && !refreshing" class="empty-state">
+    <p>Aún no hay estadísticas registradas para el modo Premier.</p>
+    <p class="hint">Haz clic abajo para consultar las partidas de Premier en HenrikDev.</p>
+  </div>
+
+  <div class="actions">
+    <button (click)="refreshAll()" [disabled]="refreshing">
+      {{ refreshing ? '⏳ Sincronizando Premier...' : '🔄 Actualizar Premier' }}
+    </button>
+    <span *ngIf="refreshMsg && !refreshing" class="msg">{{ refreshMsg }}</span>
+  </div>
+
+  <div class="progress-container" *ngIf="refreshing">
+    <div class="progress-header">
+      <span class="progress-title">Consultando partidas de Premier en Riot API...</span>
+      <span class="progress-count">{{ refreshCurrent }} / {{ refreshTotal }} ({{ progressPct | number:'1.0-0' }}%)</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" [style.width.%]="progressPct"></div>
+    </div>
+    <div class="progress-eta" *ngIf="refreshTotal > 0 && refreshCurrent < refreshTotal">
+      Tiempo estimado restante: ~{{ ((refreshTotal - refreshCurrent) * 3.0) | number:'1.0-0' }} segundos
+    </div>
+  </div>
+</div>

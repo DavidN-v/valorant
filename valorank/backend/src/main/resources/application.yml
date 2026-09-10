@@ -1,0 +1,52 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+  error:
+    include-message: always
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/valorank}
+    username: ${SPRING_DATASOURCE_USERNAME:valorank_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:valorank_pass}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:jwt-secret-key-change-in-production-must-be-32-chars-long}
+    expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000} # 24h
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:4200,https://*}
+
+henrikdev:
+  base-url: ${HENRIKDEV_BASE_URL:https://api.henrikdev.xyz}
+  api-key: ${HENRIKDEV_API_KEY:}
+  refresh:
+    max-players-per-run: 5
+    delay-between-players-ms: 3000
+    delay-between-matches-ms: 2000
+    max-retries: 3
+    max-processed-match-ids: 200
+    rate-limit-backoff-ms: 10000
+
+# Cada cuanto se actualizan automaticamente las stats de todos los usuarios (ms)
+# 3600000 = 1 hora
+scheduler:
+  stats-refresh-rate-ms: ${SCHEDULER_STATS_REFRESH_RATE_MS:3600000}
+
+discord:
+  webhook-url: ${DISCORD_WEBHOOK_URL:}
+  enabled: ${DISCORD_ENABLED:true}

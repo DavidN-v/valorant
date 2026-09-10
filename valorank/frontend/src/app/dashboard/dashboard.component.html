@@ -1,0 +1,150 @@
+<div class="dashboard">
+  <!-- Temporizador Táctico de Fin de Acto -->
+  <app-season-countdown></app-season-countdown>
+
+  <!-- Stats cargadas -->
+  <div *ngIf="stats as s">
+    <h2>{{ s.display_name }} <span class="riot-id">— {{ s.riot_id }}</span></h2>
+
+    <!-- SECCIÓN DE PROGRESO DE RANGO (VALORANT RANK PROGRESS HUD) -->
+    <div class="rank-progress-card" *ngIf="rankProgress as rp">
+      <div class="rank-badge-col current">
+        <div class="rank-icon-wrapper">
+          <img [src]="rp.currentIconUrl" [alt]="rp.currentTierSpanish" class="rank-icon" width="84" height="84" decoding="async" fetchpriority="high" />
+          <div class="rank-pulse"></div>
+        </div>
+        <div class="rank-meta">
+          <span class="rank-tier-tag">Rango Actual</span>
+          <h3 class="rank-title">{{ rp.currentTierSpanish }}</h3>
+          <span class="rank-sub" *ngIf="rp.currentTierSpanish !== rp.currentTierName">{{ rp.currentTierName }}</span>
+          <span class="rank-rr-badge">{{ rp.currentRR }} / 100 RR</span>
+        </div>
+      </div>
+
+      <div class="progress-col">
+        <div class="progress-header">
+          <span class="progress-title">📈 Progreso de Rango Competitivo</span>
+          <span class="progress-pct">{{ rp.progressPercentage }}%</span>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="rp.progressPercentage">
+              <span class="progress-glow-head"></span>
+            </div>
+            <div class="bar-marker" style="left: 25%;"></div>
+            <div class="bar-marker" style="left: 50%;"></div>
+            <div class="bar-marker" style="left: 75%;"></div>
+          </div>
+          <div class="progress-scale">
+            <span>0 RR</span>
+            <span class="scale-mid">50 RR</span>
+            <span>100 RR</span>
+          </div>
+        </div>
+
+        <div class="rank-message-box" [class.max-rank]="rp.isMaxRank">
+          <div class="message-icon">🎯</div>
+          <div class="message-text" *ngIf="!rp.isMaxRank">
+            Te faltan <strong class="highlight-rr">{{ rp.rrNeeded }} RR</strong>
+            <span class="highlight-wins"> (~{{ rp.estimatedWins }} {{ rp.estimatedWins === 1 ? 'victoria' : 'victorias' }})</span>
+            para subir a <strong class="highlight-target">{{ rp.nextTierSpanish || rp.nextTierName }}</strong>
+          </div>
+          <div class="message-text" *ngIf="rp.isMaxRank">
+            👑 <strong class="highlight-target">¡Rango Máximo Alcanzado!</strong> Eres parte de la élite mundial de Radiante.
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-badge-col next" *ngIf="!rp.isMaxRank && rp.nextIconUrl">
+        <div class="rank-icon-wrapper next-tier">
+          <img [src]="rp.nextIconUrl" [alt]="rp.nextTierSpanish || rp.nextTierName" class="rank-icon next-icon" width="84" height="84" loading="lazy" decoding="async" />
+        </div>
+        <div class="rank-meta">
+          <span class="rank-tier-tag target">Siguiente Rango</span>
+          <h3 class="rank-title target-title">{{ rp.nextTierSpanish || rp.nextTierName }}</h3>
+          <span class="rank-sub" *ngIf="rp.nextTierSpanish !== rp.nextTierName">{{ rp.nextTierName }}</span>
+          <span class="rank-target-badge">Meta: 100 RR</span>
+        </div>
+      </div>
+
+      <div class="rank-badge-col next max-rank-col" *ngIf="rp.isMaxRank">
+        <div class="radiant-badge">
+          <span class="radiant-star">⭐</span>
+          <span>TOP ÉLITE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <span>Rango</span>
+        <strong>{{ s.current_tier }}</strong>
+        <small>{{ s.ranking_in_tier }} RR</small>
+      </div>
+      <div class="card">
+        <span>Winrate</span>
+        <strong [class.stat-positive]="s.winrate_pct >= 50" [class.stat-negative]="s.winrate_pct < 50">
+          {{ s.winrate_pct | number:'1.1-1' }}%
+        </strong>
+        <small>{{ s.wins }}V - {{ s.losses }}D</small>
+      </div>
+      <div class="card">
+        <span>K/D</span>
+        <strong [class.stat-positive]="s.kd_ratio >= 1" [class.stat-negative]="s.kd_ratio < 1">
+          {{ s.kd_ratio | number:'1.2-2' }}
+        </strong>
+        <small>Ratio kills/muertes</small>
+      </div>
+      <div class="card">
+        <span>Headshot %</span>
+        <strong [class.stat-positive]="s.headshot_pct >= 25">
+          {{ s.headshot_pct | number:'1.1-1' }}%
+        </strong>
+        <small>Precisión de tiro</small>
+      </div>
+      <div class="card">
+        <span>ACS</span>
+        <strong>{{ s.avg_combat_score | number:'1.0-0' }}</strong>
+        <small>Avg Combat Score</small>
+      </div>
+      <div class="card">
+        <span>Partidas</span>
+        <strong>{{ s.matches_played }}</strong>
+        <small>Este acto</small>
+      </div>
+    </div>
+
+    <p class="updated">Actualizado: {{ s.last_updated | date:'short' }}</p>
+  </div>
+
+  <!-- Sin stats aún -->
+  <div *ngIf="!stats && loaded" class="empty-state">
+    <p>📊 Aún no hay stats registradas.</p>
+    <p class="hint">Haz clic en "Actualizar stats" para sincronizar tu cuenta de Valorant.</p>
+  </div>
+
+  <!-- Cargando initial -->
+  <div *ngIf="!loaded" class="empty-state">
+    <p>⏳ Cargando...</p>
+  </div>
+
+  <!-- Botones siempre visibles -->
+  <div class="actions" *ngIf="loaded">
+    <button (click)="refresh()" [disabled]="refreshing" class="btn-primary">
+      {{ refreshing ? '⏳ Actualizando...' : '🔄 Actualizar stats' }}
+    </button>
+    <button (click)="testDiscord()" [disabled]="testingDiscord" class="btn-discord">
+      {{ testingDiscord ? '📡 Conectando...' : '🤖 Probar Discord' }}
+    </button>
+    <a routerLink="/leaderboard" class="btn-link">Leaderboard Competitivo →</a>
+    <a routerLink="/premier" class="btn-link btn-premier">Leaderboard Premier 🏆</a>
+    <a routerLink="/maps" class="btn-link btn-maps">🗺️ Mapas & Callouts</a>
+  </div>
+
+  <div class="discord-toast" *ngIf="discordStatusMessage">
+    <span>🤖</span> {{ discordStatusMessage }}
+  </div>
+
+  <p class="error" *ngIf="refreshError">{{ refreshError }}</p>
+</div>

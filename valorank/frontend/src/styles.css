@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;600;700&display=swap');
+
+:root {
+  --bg-color: #080c10;
+  --bg-darker: #05080c;
+  --val-red: #ff4655;
+  --val-red-hover: #ff7b85;
+  --val-red-glow: rgba(255, 70, 85, 0.5);
+  --text-main: #ece8e1;
+  --text-muted: #8b978f;
+  --glass-bg: rgba(13, 21, 29, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ─── Global Tactical Background System ─────────────────────── */
+.global-tactical-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, #15222e 0%, #0d151d 60%, #080c10 100%);
+}
+
+.global-grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.global-ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.global-glow-red {
+  width: 650px;
+  height: 650px;
+  background: rgba(255, 70, 85, 0.2);
+  top: -120px;
+  left: 8%;
+  animation: pulseGlobalGlow 10s ease-in-out infinite alternate;
+}
+
+.global-glow-cyan {
+  width: 600px;
+  height: 600px;
+  background: rgba(56, 189, 248, 0.16);
+  bottom: -80px;
+  right: 12%;
+  animation: pulseGlobalGlow 12s ease-in-out infinite alternate-reverse;
+}
+
+.global-glow-center {
+  width: 450px;
+  height: 450px;
+  background: rgba(245, 158, 11, 0.06);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulseGlobalGlow 14s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlobalGlow {
+  0% { transform: scale(0.9) translate(0, 0); opacity: 0.16; }
+  100% { transform: scale(1.15) translate(30px, 20px); opacity: 0.28; }
+}
+
+.global-tactical-ring {
+  position: absolute;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.global-ring-1 {
+  width: 950px;
+  height: 950px;
+  border: 1px dashed rgba(255, 70, 85, 0.06);
+  animation: rotateGlobalRing 90s linear infinite;
+}
+
+.global-ring-2 {
+  width: 700px;
+  height: 700px;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  animation: rotateGlobalRingRev 70s linear infinite;
+}
+
+@keyframes rotateGlobalRing {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes rotateGlobalRingRev {
+  from { transform: translate(-50%, -50%) rotate(360deg); }
+  to { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+.app-content-wrapper {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--val-red);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--val-red-hover);
+}

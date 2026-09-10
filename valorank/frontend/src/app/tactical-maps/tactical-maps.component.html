@@ -1,0 +1,170 @@
+<div class="tactical-maps-page">
+  <!-- Barra de Navegación Global -->
+  <div class="nav-bar">
+    <a routerLink="/dashboard" class="back-link">← Volver a mi Dashboard</a>
+    <div class="mode-tabs">
+      <a routerLink="/leaderboard" class="tab">⚔️ Competitivo</a>
+      <a routerLink="/premier" class="tab">🏆 Premier</a>
+      <a routerLink="/maps" class="tab active">🗺️ Mapas & Callouts</a>
+    </div>
+  </div>
+
+  <!-- Temporizador Táctico de Fin de Acto -->
+  <app-season-countdown></app-season-countdown>
+
+  <!-- Encabezado de la Sección -->
+  <div class="page-header">
+    <div class="header-titles">
+      <div class="badge-hud">TACTICAL STRATBOOK // V26</div>
+      <h2>🗺️ Visor Táctico de Mapas & Callouts</h2>
+      <p class="subtitle">Aprende las llamadas tácticas oficiales de cada zona para coordinar al equipo en Premier y Competitivo.</p>
+    </div>
+
+    <!-- Toggle para ver todos los nombres a la vez -->
+    <div class="header-actions" *ngIf="selectedMap">
+      <button class="btn-toggle-labels" [class.active]="showAllLabels" (click)="showAllLabels = !showAllLabels">
+        <span>{{ showAllLabels ? '👁️ Ocultar Etiquetas' : '🏷️ Mostrar Todas las Etiquetas' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Carrusel / Selector de Mapas -->
+  <div class="map-selector-strip" *ngIf="maps.length > 0">
+    <button
+      *ngFor="let m of maps"
+      class="map-thumb-card"
+      [class.selected]="selectedMap?.uuid === m.uuid"
+      (click)="selectMap(m)">
+      <div class="thumb-bg-wrap">
+        <img [src]="m.splash" [alt]="m.displayName" class="thumb-bg" loading="lazy" decoding="async" />
+        <div class="thumb-gradient"></div>
+      </div>
+      <div class="thumb-content">
+        <span class="map-tag">{{ m.tacticalDescription }}</span>
+        <h4 class="map-title">{{ m.displayName }}</h4>
+      </div>
+    </button>
+  </div>
+
+  <!-- Contenedor Principal del Mapa y Diccionario -->
+  <div class="tactical-arena" *ngIf="selectedMap">
+    
+    <!-- LADO IZQUIERDO: VISOR INTERACTIVO DEL MINIMAPA -->
+    <div class="map-canvas-card">
+      <div class="map-canvas-header">
+        <div class="map-meta-left">
+          <h3 class="active-map-name">{{ selectedMap.displayName }}</h3>
+          <span class="map-coords">{{ selectedMap.coordinates }}</span>
+        </div>
+        <div class="map-meta-right">
+          <span class="callout-counter">📍 {{ selectedMap.callouts.length }} Puntos Tácticos</span>
+        </div>
+      </div>
+
+      <div class="minimap-viewport">
+        <!-- Imagen del Minimapa Oficial -->
+        <img [src]="selectedMap.displayIcon" [alt]="selectedMap.displayName" class="minimap-img" />
+
+        <!-- Overlay de Pines Tácticos -->
+        <div class="pins-layer">
+          <div
+            *ngFor="let c of filteredCallouts"
+            class="callout-pin"
+            [class.highlighted]="hoveredCallout === c || selectedCallout === c"
+            [class.show-label]="showAllLabels"
+            [style.left.%]="c.xPct"
+            [style.top.%]="c.yPct"
+            (mouseenter)="onCalloutHover(c)"
+            (mouseleave)="onCalloutHover(null)"
+            (click)="onCalloutClick(c)">
+            
+            <div class="pin-dot"></div>
+            <div class="pin-pulse"></div>
+
+            <!-- Etiqueta Flotante / Tooltip -->
+            <div class="pin-tag">
+              <span class="tag-sector" *ngIf="c.superRegionName">{{ c.superRegionName }}</span>
+              <span class="tag-name">{{ c.regionName }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Radar Crosshair Central -->
+        <div class="map-crosshair"></div>
+      </div>
+
+      <!-- Tarjeta Flotante HUD de Información de la Zona Seleccionada -->
+      <div class="callout-info-bar" *ngIf="hoveredCallout || selectedCallout as activeC">
+        <div class="info-pill">
+          <span class="info-icon">🎯</span>
+          <div class="info-text">
+            <span class="info-lbl">Llamada Táctica Seleccionada</span>
+            <strong class="info-val">{{ activeC.fullName }}</strong>
+          </div>
+        </div>
+        <div class="info-details" *ngIf="activeC.superRegionName">
+          <span class="detail-badge">Sector: {{ activeC.superRegionName }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LADO DERECHO: DICCIONARIO Y BUSCADOR DE CALLOUTS -->
+    <div class="callout-sidebar-card">
+      <div class="sidebar-header">
+        <h4>📋 Directorio de Llamadas</h4>
+        <span class="sidebar-desc">Haz clic en una zona para ubicarla en el mapa</span>
+      </div>
+
+      <!-- Buscador en Vivo -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          placeholder="Buscar zona (ej. Heaven, Site, Garage)..."
+          class="search-input"
+        />
+        <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery = ''">✕</button>
+      </div>
+
+      <!-- Filtro por Sectores (A, B, C, Mid, etc.) -->
+      <div class="sector-chips" *ngIf="availableSectors.length > 0">
+        <button
+          class="sector-chip"
+          [class.active]="selectedFilterSector === 'ALL'"
+          (click)="selectedFilterSector = 'ALL'">
+          TODOS ({{ selectedMap.callouts.length }})
+        </button>
+        <button
+          *ngFor="let s of availableSectors"
+          class="sector-chip"
+          [class.active]="selectedFilterSector === s"
+          (click)="selectedFilterSector = s">
+          {{ s }}
+        </button>
+      </div>
+
+      <!-- Lista de Callouts Filtrados -->
+      <div class="callout-list-scroll">
+        <div
+          *ngFor="let c of filteredCallouts"
+          class="callout-item-card"
+          [class.active]="hoveredCallout === c || selectedCallout === c"
+          (mouseenter)="onCalloutHover(c)"
+          (mouseleave)="onCalloutHover(null)"
+          (click)="onCalloutClick(c)">
+          <div class="item-left">
+            <span class="item-sector-badge">{{ c.superRegionName || 'ZONA' }}</span>
+            <span class="item-name">{{ c.regionName }}</span>
+          </div>
+          <span class="item-arrow">🎯</span>
+        </div>
+
+        <div class="no-callouts" *ngIf="filteredCallouts.length === 0">
+          <p>No se encontraron zonas que coincidan con "{{ searchQuery }}"</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
